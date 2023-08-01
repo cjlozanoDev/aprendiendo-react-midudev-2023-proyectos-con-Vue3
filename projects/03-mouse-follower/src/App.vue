@@ -21,7 +21,6 @@ watch(enabled, () => {
 
 watchEffect(() => {
   document.body.classList.toggle('no-cursor', enabled.value)
-
 })
 
 </script>
