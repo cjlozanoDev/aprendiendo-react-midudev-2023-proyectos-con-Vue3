@@ -4,30 +4,40 @@ import { useMovies } from  './hooks/useMovies'
 import { ref, reactive, watch } from 'vue'
 import ListMovies from './components/ListMovies.vue';
 
-const { movies } = useMovies()
-const foundMovies = reactive(movies)
-const query = ref('')
-const error = ref(null)
+const useSearch = () => {
+  const search = ref('')
+  const error = ref(null)
+  const isFirstInput = ref(true)
+
+  watch(search, newSearch => {
+    if (newSearch === '') {
+      error.value='No se puede buscar una película vacía'
+      return
+    }
+    if (newSearch.match(/^\d+$/)) {
+      error.value='No se puede buscar una película con un número'
+      return
+    }
+    if (newSearch.length < 3) {
+      error.value='La búsqueda debe tener al menos 3 caracteres'
+      return
+    }
+    error.value=null
+  })
+  return { search, error, isFirstInput}
+}
+const { search, error } = useSearch()
+const { movies, getMovies, loading } = useMovies(search)
+const isFirstInput = ref(true)
 
 const handleSubmit = (event) => {
   event.preventDefault();
-}
+  getMovies();
+  if (isFirstInput.value) {
+    isFirstInput.value = false;
+  } 
 
-watch(query, newQuery => {
-  if (newQuery === '') {
-    error.value='No se puede buscar una película vacía'
-    return
-  }
-  if (newQuery.match(/^\d+$/)) {
-    error.value='No se puede buscar una película con un número'
-    return
-  }
-  if (newQuery.length < 3) {
-    error.value='La búsqueda debe tener al menos 3 caracteres'
-    return
-  }
-  error.value=null
-})
+}
 
 </script>
 
@@ -38,7 +48,7 @@ watch(query, newQuery => {
       <form class='form' @submit="handleSubmit">
         <input
           type="text"
-          v-model="query"
+          v-model="search"
           placeholder='Avengers, StarWars, The Matrix...'
           :style="{
             border: '1px solid transparent',
@@ -52,7 +62,9 @@ watch(query, newQuery => {
     </header>
 
     <main>
-      <ListMovies :movies="foundMovies"/>
+      <p v-if="loading"> Cargando ... </p>
+      <ListMovies v-if="movies?.length" :movies="movies"/>
+      <p v-if="!movies?.length && !isFirstInput"> No se encontraron películas para esta búsqueda</p>
     </main>
   </div>
 </template>
