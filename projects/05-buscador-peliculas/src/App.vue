@@ -4,10 +4,10 @@ import { useMovies } from  './hooks/useMovies'
 import { ref, reactive, watch } from 'vue'
 import ListMovies from './components/ListMovies.vue';
 
+
 const useSearch = () => {
   const search = ref('')
   const error = ref(null)
-  const isFirstInput = ref(true)
 
   watch(search, newSearch => {
     if (newSearch === '') {
@@ -24,15 +24,33 @@ const useSearch = () => {
     }
     error.value=null
   })
-  return { search, error, isFirstInput}
+  return { search, error }
 }
+
+
+const sort = ref(false)
 const { search, error } = useSearch()
-const { movies, getMovies, loading } = useMovies(search)
+const { movies, getMovies, loading } = useMovies(sort)
 const isFirstInput = ref(true)
+const debounce = ref(null)
+
+const debouncedGetMovies = () => {
+  clearTimeout(debounce.value)
+  debounce.value = setTimeout(() => {
+    getMovies(search)
+  }, 300)
+}
+
+const handleChange = () => {
+  console.log('hola')
+  debouncedGetMovies()
+}
+
+
 
 const handleSubmit = (event) => {
   event.preventDefault();
-  getMovies();
+  getMovies(search);
   if (isFirstInput.value) {
     isFirstInput.value = false;
   } 
@@ -49,11 +67,13 @@ const handleSubmit = (event) => {
         <input
           type="text"
           v-model="search"
+          @input="handleChange"
           placeholder='Avengers, StarWars, The Matrix...'
           :style="{
             border: '1px solid transparent',
             borderColor: error ? 'red' : 'transparent'
           }"/>
+          <input type="checkbox" v-model="sort"/>
         <button type='submit'>Buscar </button>
       </form>
       <p v-if="error" :style="{ color: 'red' }">
