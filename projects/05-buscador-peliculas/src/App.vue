@@ -42,10 +42,8 @@ const debouncedGetMovies = () => {
 }
 
 const handleChange = () => {
-  console.log('hola')
   debouncedGetMovies()
 }
-
 
 
 const handleSubmit = (event) => {

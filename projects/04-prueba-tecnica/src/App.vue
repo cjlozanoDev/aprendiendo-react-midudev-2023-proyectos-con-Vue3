@@ -14,14 +14,11 @@
       .then(data => {
         const { fact } = data
         factData.value = fact
-        console.log(factData.value)
       })
   })
 
   watch(factData,() => {
-    console.log(factData.value)
     const firstWorld = factData.value.split(' ')[0]
-    console.log(firstWorld)
 
     fetch(`https://cataas.com/cat/says/${firstWorld}?size=50&color=red&json=true`)
       .then(res => res.json())
